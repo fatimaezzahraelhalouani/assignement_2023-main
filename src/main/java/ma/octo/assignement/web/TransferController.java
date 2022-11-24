@@ -3,56 +3,51 @@ package ma.octo.assignement.web;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ma.octo.assignement.domain.Compte;
-import ma.octo.assignement.domain.Utilisateur;
 import ma.octo.assignement.domain.Transfer;
 import ma.octo.assignement.dto.TransferDto;
+import ma.octo.assignement.exceptions.AuditNonValideException;
 import ma.octo.assignement.exceptions.CompteNonExistantException;
 import ma.octo.assignement.exceptions.SoldeDisponibleInsuffisantException;
 import ma.octo.assignement.exceptions.TransactionException;
-import ma.octo.assignement.repository.CompteRepository;
-import ma.octo.assignement.repository.UtilisateurRepository;
-import ma.octo.assignement.repository.TransferRepository;
-import ma.octo.assignement.service.AuditService;
-import ma.octo.assignement.service.TransferService;
+import ma.octo.assignement.mapper.TransferMapper;
+import ma.octo.assignement.service.TransferServiceImpl;
+import ma.octo.assignement.service.interfaces.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RestController(value = "/transfers")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@RestController
+@RequestMapping("/transfers")
 public class TransferController {
 
     Logger LOGGER = LoggerFactory.getLogger(TransferController.class);
 
-    @Autowired
-    private TransferService transferService;
 
-    @GetMapping("listDesTransferts")
-    List<Transfer> loadAll() {
-     return transferService.loadAll();
+    private final TransferService transferService;
+@Autowired
+    public TransferController(TransferService transferService) {
+        this.transferService = transferService;
+    }
+
+    @GetMapping
+    List<TransferDto> loadAll() {
+     return transferService.loadAll().stream().map(TransferMapper::map).collect(Collectors.toList());
     }
 
 
 
 
 
-    @PostMapping("/executerTransfers")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void createTransaction(@RequestBody TransferDto transferDto)
-            throws SoldeDisponibleInsuffisantException, CompteNonExistantException, TransactionException {
+            throws CompteNonExistantException, TransactionException, AuditNonValideException {
          transferService.createTransaction(transferDto);
             }
 
-    private void save(Transfer transfer) {
-        transferService.save(transfer);
-    }
 }

@@ -1,5 +1,8 @@
 package ma.octo.assignement.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 
 import javax.persistence.*;
@@ -9,14 +12,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 @Table(name = "UTILISATEUR")
 public class Utilisateur implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(length = 10, nullable = false, unique = true)
+  @Column(length = 20, nullable = false, unique = true)
   private String username;
+
+  private String password;
 
   @Column(length = 10, nullable = false)
   private String gender;
@@ -30,6 +38,19 @@ public class Utilisateur implements Serializable {
   @Temporal(TemporalType.DATE)
   private Date birthdate;
 
+  public Utilisateur(Long id ,String username, String password) {
+    this.id = id;
+    this.username = username;
+    this.password = password;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
   public String getGender() {
     return gender;

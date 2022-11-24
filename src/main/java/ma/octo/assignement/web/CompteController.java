@@ -1,27 +1,39 @@
 package ma.octo.assignement.web;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import ma.octo.assignement.domain.Compte;
-import ma.octo.assignement.service.CompteService;
+import ma.octo.assignement.dto.CompteRequestDto;
+import ma.octo.assignement.dto.CompteResponseDto;
+import ma.octo.assignement.exceptions.CompteExisteDejaException;
+import ma.octo.assignement.exceptions.CompteNonValidException;
+import ma.octo.assignement.exceptions.UtilisateurNonExistantException;
+import ma.octo.assignement.service.interfaces.CompteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@RestController(value = "/comptes")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@RestController
+@RequestMapping("/comptes")
 public class CompteController {
+
     Logger LOGGER = LoggerFactory.getLogger(CompteController.class);
-    @Autowired
-    private CompteService compteService;
-    @GetMapping("listOfAccounts")
-    List<Compte> loadAllCompte() {
+
+
+    private final CompteService compteService;
+@Autowired
+    public CompteController(CompteService compteService) {
+        this.compteService = compteService;
+    }
+
+    @GetMapping
+    List<CompteResponseDto> loadAllCompte() {
         return compteService.loadAllCompte();
     }
+
+    @PostMapping
+    public CompteResponseDto save(@RequestBody CompteRequestDto compteRequestDto) throws CompteNonValidException, UtilisateurNonExistantException, CompteExisteDejaException {
+        return compteService.save(compteRequestDto);
+    }
+
+
 }

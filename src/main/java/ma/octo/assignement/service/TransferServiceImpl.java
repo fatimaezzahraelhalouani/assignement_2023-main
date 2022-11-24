@@ -1,37 +1,45 @@
 package ma.octo.assignement.service;
 
-import ma.octo.assignement.domain.Compte;
-import ma.octo.assignement.domain.Transfer;
+import ma.octo.assignement.domain.*;
 import ma.octo.assignement.dto.TransferDto;
+import ma.octo.assignement.exceptions.AuditNonValideException;
 import ma.octo.assignement.exceptions.CompteNonExistantException;
-import ma.octo.assignement.exceptions.SoldeDisponibleInsuffisantException;
 import ma.octo.assignement.exceptions.TransactionException;
+import ma.octo.assignement.exceptions.TransferNonExistantException;
+import ma.octo.assignement.mapper.TransferMapper;
 import ma.octo.assignement.repository.CompteRepository;
 import ma.octo.assignement.repository.TransferRepository;
+import ma.octo.assignement.service.interfaces.AuditService;
+import ma.octo.assignement.service.interfaces.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
-public class TransferService {
+public class TransferServiceImpl implements TransferService {
     public static final int MONTANT_MAXIMAL = 10000;
-    Logger LOGGER = LoggerFactory.getLogger(TransferService.class);
-    @Autowired
-    private TransferRepository transferRepository;
-    @Autowired
-    private CompteRepository compteRepository;
-    @Autowired
-    private AuditService auditService;
+    Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    public void createTransaction(TransferDto transferDto)
-            throws SoldeDisponibleInsuffisantException, CompteNonExistantException, TransactionException {
+    private final TransferRepository transferRepository;
+
+    private final CompteRepository compteRepository;
+
+    private final AuditService auditService;
+
+    public TransferServiceImpl(TransferRepository transferRepository, CompteRepository compteRepository, AuditService auditService) {
+        this.transferRepository = transferRepository;
+        this.compteRepository = compteRepository;
+        this.auditService = auditService;
+    }
+
+    public void createTransaction(TransferDto transferDto) throws CompteNonExistantException, TransactionException, AuditNonValideException {
         Compte compteEmetteur = compteRepository.findByNrCompte(transferDto.getNrCompteEmetteur());
         Compte compteBeneficiaire = compteRepository
                 .findByNrCompte(transferDto.getNrCompteBeneficiaire());
@@ -83,10 +91,15 @@ public class TransferService {
         transfer.setMontantTransfer(transferDto.getMontant());
 
         transferRepository.save(transfer);
-
-        auditService.auditTransfer("Transfer depuis " + transferDto.getNrCompteEmetteur() + " vers " + transferDto
+         //creer transfer
+        // create an audit
+        Audit audit = new AuditTransfer();
+        String message = "Transfer depuis " + transferDto.getNrCompteEmetteur() + " vers " + transferDto
                 .getNrCompteBeneficiaire() + " d'un montant de " + transferDto.getMontant()
-                .toString());
+                .toString();
+
+        audit.setMessage(message);
+        auditService.createAudit(audit);
     }
 
     public List<Transfer> loadAll() {
@@ -104,5 +117,15 @@ public class TransferService {
 
     public void save(Transfer transfer) {
         transferRepository.save(transfer);
+    }
+
+    @Override
+    public TransferDto getTransfer(Long id) throws TransferNonExistantException {
+        Optional<Transfer> optionalTransferDto = transferRepository.findById(id);
+
+        if (!optionalTransferDto.isPresent())
+            throw new TransferNonExistantException("ce transfert non existant");
+
+        return TransferMapper.map(optionalTransferDto.get());
     }
 }

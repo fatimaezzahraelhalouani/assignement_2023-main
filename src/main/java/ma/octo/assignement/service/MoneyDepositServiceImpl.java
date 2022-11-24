@@ -1,14 +1,18 @@
 package ma.octo.assignement.service;
 
+import ma.octo.assignement.domain.Audit;
+import ma.octo.assignement.domain.AuditDeposit;
 import ma.octo.assignement.domain.Compte;
 import ma.octo.assignement.domain.MoneyDeposit;
-import ma.octo.assignement.domain.Transfer;
 import ma.octo.assignement.dto.MoneyDepositDto;
+import ma.octo.assignement.exceptions.AuditNonValideException;
 import ma.octo.assignement.exceptions.CompteNonExistantException;
-import ma.octo.assignement.exceptions.SoldeDisponibleInsuffisantException;
 import ma.octo.assignement.exceptions.TransactionException;
+import ma.octo.assignement.repository.AuditDepositeRepository;
 import ma.octo.assignement.repository.CompteRepository;
 import ma.octo.assignement.repository.MoneyDepositRepository;
+import ma.octo.assignement.service.interfaces.AuditService;
+import ma.octo.assignement.service.interfaces.MoneyDepositService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,20 +25,26 @@ import java.util.List;
 
 @Service
 @Transactional
-public class MoneyDepositService {
-    Logger LOGGER = LoggerFactory.getLogger(MoneyDepositService.class);
+public class MoneyDepositServiceImpl implements MoneyDepositService {
+    Logger LOGGER = LoggerFactory.getLogger(MoneyDepositServiceImpl.class);
     public static final int MONTANT_MAXIMAL = 10000;
 
-    @Autowired
-    private MoneyDepositRepository moneyDepositRepository;
-    @Autowired
-    private CompteRepository compteRepository;
-    @Autowired
-    private AuditService auditService;
 
+    private final MoneyDepositRepository moneyDepositRepository;
+
+    private final CompteRepository compteRepository;
+
+    private final AuditService auditService;
+@Autowired
+    public MoneyDepositServiceImpl(MoneyDepositRepository moneyDepositRepository,
+                              CompteRepository compteRepository, AuditService auditService) {
+        this.moneyDepositRepository = moneyDepositRepository;
+        this.compteRepository = compteRepository;
+        this.auditService = auditService;
+    }
 
     public void createDeposit(MoneyDepositDto moneyDepositDto)
-            throws CompteNonExistantException, TransactionException {
+            throws CompteNonExistantException, TransactionException, AuditNonValideException {
 
         Compte compteBeneficiaire = compteRepository
                 .findByNrCompte(moneyDepositDto.getNrCompteBeneficiaire());
@@ -59,7 +69,7 @@ public class MoneyDepositService {
             throw new TransactionException("Montant maximal de deposit dépassé");
         }
 
-
+        //mise à jour du solde solde
         compteBeneficiaire
                 .setSolde(new BigDecimal(compteBeneficiaire.getSolde().intValue() + moneyDepositDto.getMontant().intValue()));
         compteRepository.save(compteBeneficiaire);
@@ -67,14 +77,21 @@ public class MoneyDepositService {
         MoneyDeposit moneyDeposit = new MoneyDeposit();
         moneyDeposit.setDateExecution(moneyDepositDto.getDate());
         moneyDeposit.setCompteBeneficiaire(compteBeneficiaire);
-        moneyDeposit.setMontant(moneyDepositDto.getMontant());
+        moneyDeposit.setMontantDeposit(moneyDepositDto.getMontant());
 
-        moneyDepositRepository.save(moneyDeposit);
+        //creer nouveau deposit
+        // create an audit
+        Audit audit = new AuditDeposit();
+        String message = "Deposit fait par " + moneyDepositDto.getNomPrenomEmetteur() + " vers "
+                + moneyDepositDto.getNrCompteBeneficiaire() + " d'un montant de "
+                + moneyDepositDto.getMontant().toString();
 
-        auditService.auditTransfer("Deposit "+ moneyDepositDto
-                .getNrCompteBeneficiaire() + " d'un montant de " + moneyDepositDto.getMontant()
-                .toString());
+        audit.setMessage(message);
+        auditService.createAudit(audit);
     }
+
+
+
 
     public List<MoneyDeposit> loadAll() {
         LOGGER.info("Lister des utilisateurs");

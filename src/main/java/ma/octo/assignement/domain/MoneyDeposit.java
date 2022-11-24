@@ -1,11 +1,15 @@
 package ma.octo.assignement.domain;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
 @Table(name = "DEPOSIT")
+@Data
 public class MoneyDeposit {
 
   @Id
@@ -28,51 +32,4 @@ public class MoneyDeposit {
   @Column(length = 200)
   private String motifDeposit;
 
-  public BigDecimal getMontant() {
-    return montantDeposit;
-  }
-
-  public void setMontant(BigDecimal montant) {
-    this.montantDeposit = montant;
-  }
-
-  public Date getDateExecution() {
-    return dateExecution;
-  }
-
-  public void setDateExecution(Date dateExecution) {
-    this.dateExecution = dateExecution;
-  }
-
-  public Compte getCompteBeneficiaire() {
-    return compteBeneficiaire;
-  }
-
-  public void setCompteBeneficiaire(Compte compteBeneficiaire) {
-    this.compteBeneficiaire = compteBeneficiaire;
-  }
-
-  public String getMotifDeposit() {
-    return motifDeposit;
-  }
-
-  public void setMotifDeposit(String motifDeposit) {
-    this.motifDeposit = motifDeposit;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getNom_prenom_emetteur() {
-    return nomPrenomEmetteur;
-  }
-
-  public void setNom_prenom_emetteur(String nom_prenom_emetteur) {
-    this.nomPrenomEmetteur = nom_prenom_emetteur;
-  }
 }
