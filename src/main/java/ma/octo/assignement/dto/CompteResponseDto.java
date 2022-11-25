@@ -15,11 +15,4 @@ public class CompteResponseDto {
     private BigDecimal solde;
     private String username;
 
-    public BigDecimal getSolde() {
-        return solde;
-    }
-
-    public void setSolde(BigDecimal solde) {
-        this.solde = solde;
-    }
 }

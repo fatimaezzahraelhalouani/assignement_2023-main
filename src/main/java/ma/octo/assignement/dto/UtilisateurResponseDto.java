@@ -12,6 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class UtilisateurResponseDto {
+
     //information that i will receive about the user
     private String username;
     private String lastname;

@@ -13,9 +13,9 @@ import ma.octo.assignement.service.interfaces.AuditService;
 import ma.octo.assignement.service.interfaces.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,64 +24,78 @@ import java.util.Optional;
 @Service
 @Transactional
 public class TransferServiceImpl implements TransferService {
-    public static final int MONTANT_MAXIMAL = 10000;
+
     Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
 
+    public static final int MONTANT_MAXIMAL = 10000;
     private final TransferRepository transferRepository;
-
     private final CompteRepository compteRepository;
-
     private final AuditService auditService;
 
-    public TransferServiceImpl(TransferRepository transferRepository, CompteRepository compteRepository, AuditService auditService) {
+    @Autowired
+    public TransferServiceImpl(TransferRepository transferRepository, CompteRepository compteRepository, AuditService auditService)
+    {
         this.transferRepository = transferRepository;
         this.compteRepository = compteRepository;
         this.auditService = auditService;
     }
 
-    public void createTransaction(TransferDto transferDto) throws CompteNonExistantException, TransactionException, AuditNonValideException {
+    @Override
+    public void createTransaction(TransferDto transferDto) throws CompteNonExistantException, TransactionException, AuditNonValideException
+    {
         Compte compteEmetteur = compteRepository.findByNrCompte(transferDto.getNrCompteEmetteur());
-        Compte compteBeneficiaire = compteRepository
-                .findByNrCompte(transferDto.getNrCompteBeneficiaire());
+        Compte compteBeneficiaire = compteRepository.findByNrCompte(transferDto.getNrCompteBeneficiaire());
 
-        if (compteEmetteur == null) {
+        if (compteEmetteur == null)
+        {
             System.out.println("Compte Non existant");
             throw new CompteNonExistantException("Compte Non existant");
         }
 
-        if (compteBeneficiaire == null) {
+        if (compteBeneficiaire == null)
+        {
             System.out.println("Compte Non existant");
             throw new CompteNonExistantException("Compte Non existant");
         }
 
-        if (transferDto.getMontant().equals(null)) {
+        if (transferDto.getMontant().equals(null))
+        {
             System.out.println("Montant vide");
             throw new TransactionException("Montant vide");
-        } else if (transferDto.getMontant().intValue() == 0) {
+        }
+        else if (transferDto.getMontant().intValue() == 0)
+        {
             System.out.println("Montant vide");
             throw new TransactionException("Montant vide");
-        } else if (transferDto.getMontant().intValue() < 10) {
+        }
+        else if (transferDto.getMontant().intValue() < 10)
+        {
             System.out.println("Montant minimal de transfer non atteint");
             throw new TransactionException("Montant minimal de transfer non atteint");
-        } else if (transferDto.getMontant().intValue() > MONTANT_MAXIMAL) {
+        }
+        else if (transferDto.getMontant().intValue() > MONTANT_MAXIMAL)
+        {
             System.out.println("Montant maximal de transfer dépassé");
             throw new TransactionException("Montant maximal de transfer dépassé");
         }
 
-        if (transferDto.getMotif().length() < 0) {
+        if (transferDto.getMotif().length() < 0)
+        {
             System.out.println("Motif vide");
             throw new TransactionException("Motif vide");
         }
 
-        if (compteEmetteur.getSolde().intValue() - transferDto.getMontant().intValue() < 0) {
-            LOGGER.error("Solde insuffisant pour l'utilisateur");
+        if (compteEmetteur.getSolde().intValue() - transferDto.getMontant().intValue() < 0)
+        {
+           LOGGER.error("Solde insuffisant pour l'utilisateur");
         }
 
+        //Mise à jour solde emetteur
         compteEmetteur.setSolde(compteEmetteur.getSolde().subtract(transferDto.getMontant()));
         compteRepository.save(compteEmetteur);
 
-        compteBeneficiaire
-                .setSolde(new BigDecimal(compteBeneficiaire.getSolde().intValue() + transferDto.getMontant().intValue()));
+        //Mise à jour solde beneficiaire
+        compteBeneficiaire.setSolde(new BigDecimal(compteBeneficiaire.getSolde().intValue() + transferDto.getMontant().intValue()));
         compteRepository.save(compteBeneficiaire);
 
         Transfer transfer = new Transfer();
@@ -91,8 +105,8 @@ public class TransferServiceImpl implements TransferService {
         transfer.setMontantTransfer(transferDto.getMontant());
 
         transferRepository.save(transfer);
-         //creer transfer
-        // create an audit
+
+        //creer transfer
         Audit audit = new AuditTransfer();
         String message = "Transfer depuis " + transferDto.getNrCompteEmetteur() + " vers " + transferDto
                 .getNrCompteBeneficiaire() + " d'un montant de " + transferDto.getMontant()
@@ -102,25 +116,32 @@ public class TransferServiceImpl implements TransferService {
         auditService.createAudit(audit);
     }
 
-    public List<Transfer> loadAll() {
+    @Override
+    public List<Transfer> loadAll()
+    {
         LOGGER.info("Lister des utilisateurs");
+
         var all = transferRepository.findAll();
 
-        if (CollectionUtils.isEmpty(all)) {
+        if (CollectionUtils.isEmpty(all))
+        {
             return null;
-        } else {
+        }
+        else
+        {
             return CollectionUtils.isEmpty(all) ? all : null;
         }
 
-
     }
 
+    @Override
     public void save(Transfer transfer) {
         transferRepository.save(transfer);
     }
 
     @Override
-    public TransferDto getTransfer(Long id) throws TransferNonExistantException {
+    public TransferDto getTransfer(Long id) throws TransferNonExistantException
+    {
         Optional<Transfer> optionalTransferDto = transferRepository.findById(id);
 
         if (!optionalTransferDto.isPresent())

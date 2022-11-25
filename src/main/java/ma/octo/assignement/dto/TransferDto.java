@@ -10,9 +10,11 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferDto {
+
   private String nrCompteEmetteur;
   private String nrCompteBeneficiaire;
   private String motif;
   private BigDecimal montant;
   private Date date;
+
 }

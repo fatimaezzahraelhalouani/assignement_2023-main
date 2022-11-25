@@ -11,6 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MoneyDepositDto {
+
     private String nrCompteBeneficiaire;
     private BigDecimal montant;
     private Date date;
