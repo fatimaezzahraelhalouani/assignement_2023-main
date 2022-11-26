@@ -20,7 +20,7 @@ public class CompteController {
 
 
     private final CompteService compteService;
-@Autowired
+    @Autowired
     public CompteController(CompteService compteService) {
         this.compteService = compteService;
     }

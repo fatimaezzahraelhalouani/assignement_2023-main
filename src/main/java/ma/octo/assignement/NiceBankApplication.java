@@ -5,10 +5,8 @@ import ma.octo.assignement.dto.UtilisateurResquestDto;
 import ma.octo.assignement.service.interfaces.UtlisateurService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -28,9 +26,6 @@ public class NiceBankApplication {
 	CommandLineRunner start(UtlisateurService utilisateurService) {
 		return args -> {
 
-			//utilisateurService.saveRole(new AppRole(null, "ADMIN"));
-			//utilisateurService.saveRole(new AppRole(null, "USER"));
-
 			UtilisateurResquestDto admin = UtilisateurResquestDto.builder()
 					.firstname("firstname1")
 					.lastname("lastname1")
@@ -49,10 +44,6 @@ public class NiceBankApplication {
 					.build();
 			utilisateurService.save(utilisateur);
 
-			//utilisateurService.addRoleToUser("USER","admin" );
-			//utilisateurService.addRoleToUser("ADMIN","admin" );
-
-			//utilisateurService.addRoleToUser("USER","user" );
 		};
 	}
 	}
