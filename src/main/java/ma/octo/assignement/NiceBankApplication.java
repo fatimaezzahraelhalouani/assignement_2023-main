@@ -27,19 +27,19 @@ public class NiceBankApplication {
 		return args -> {
 
 			UtilisateurResquestDto admin = UtilisateurResquestDto.builder()
-					.firstname("firstname1")
-					.lastname("lastname1")
+					.firstname("El halouani")
+					.lastname("Fatimaezzahra")
 					.gender("FEMALE")
-					.username("admin")
+					.username("fati")
 					.password("1234")
 					.build();
 			utilisateurService.save(admin);
 
 			UtilisateurResquestDto utilisateur = UtilisateurResquestDto.builder()
-					.firstname("firstname2")
-					.lastname("lastname 2")
-					.gender("MALE")
-					.username("user")
+					.firstname("Doha")
+					.lastname("Meskour")
+					.gender("FEMALE")
+					.username("doha")
 					.password("1234")
 					.build();
 			utilisateurService.save(utilisateur);
